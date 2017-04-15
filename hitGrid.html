@@ -1,0 +1,260 @@
+﻿<body>
+    <canvas id="demoCanvas" width="5000" height="5000">
+        <p></p>
+    </canvas>
+    <!---展示bresenham算法 以及 项目中用到的，根据起始点坐标，获得连线经过的格子--->
+    <script type="text/javascript">
+        
+		
+		print = console.log;
+		
+		
+		var cell_w = 50;
+		var cell_h = 50;
+		var w_count = 20;
+		var h_count = 20;
+		
+		//do{type c = (a);a=(b);b=c;}while(0)
+		var abs = Math.abs;
+		function DrawPixel(x,y)
+		{
+			context.strokeStyle = "blue";
+            context.fillRect(x*cell_w,y*cell_h, cell_w,cell_h);
+		}
+		function DrawLine(x0,y0,x1,y1)
+	{
+		 
+		var steep = abs(y1-y0) > abs(x1-x0);
+		if(steep)//如果斜率绝对值大于1，交换x和y，变成斜率绝对值小于1的
+		{
+			print('aaaa');
+			var c = x0;
+			x0=y0;
+			y0=c;
+			
+			var c = x1;
+			x1=y1;
+			y1=c;
+		}
+		if(x0 > x1)//如果反方向（从右上至左下）,交换起点和终点
+		{
+			print('bbbb');
+			var c = x0;
+			x0=x1;
+			x1=c;
+			
+			var c = y0;
+			y0=y1;
+			y1=c;
+		}
+
+		var deltax =  x1 - x0;
+		var deltay =  y1 - y0;
+		var error = 0;
+		var deltaerr =  abs(deltay / deltax);
+		var ystep;
+		if (y0<y1)
+			ystep = 1;
+		else
+			ystep = -1;
+		//print(ystep)
+		var y = y0;
+		var x;
+		for (x = x0;x<=x1;x++)
+		{
+			//print(x,y)
+			if (steep)//x 和 y 坐标是调换过了，绘制的时候要再调换回去
+				DrawPixel(y,x);
+			else
+				DrawPixel(x,y);
+			error = error + deltaerr;
+			if(error == 0)
+			{
+				console.log("->>>>0")
+			}
+			if (error>=0.5)
+			{
+				y= y + ystep;
+				error = error - 1.0;
+			}
+		}
+	}
+
+	
+		function GetHitGrid(x0,y0,x1,y1)
+	{
+		var grids = [];
+		//对角线方向，要特殊处理
+		if(abs(y1-y0) == abs(x1-x0)){
+			var step_x = x1 > x0 ? 1 : -1;
+			var step_y = y1 > y0 ? 1 : -1;
+			for(var x=x0;;x+=step_x){
+				y=y0 + abs(x-x0) * step_y;
+				//DrawPixel(x,y)
+				grids.push({x:x,y:y});
+				if(x == x1)
+					break;
+			}
+			return grids
+		}
+		
+		var steep = abs(y1-y0) > abs(x1-x0);
+		if(steep)//如果斜率绝对值大于1，交换x和y，变成斜率绝对值小于1的
+		{
+			var c = x0;
+			x0=y0;
+			y0=c;
+			
+			var c = x1;
+			x1=y1;
+			y1=c;
+		}
+		if(x0 > x1)//如果反方向（从右上至左下）,交换起点和终点
+		{
+			var c = x0;
+			x0=x1;
+			x1=c;
+			
+			var c = y0;
+			y0=y1;
+			y1=c;
+		}
+
+		var deltax =  x1 - x0;
+		var deltay =  y1 - y0;
+		var error = 0;
+		
+		var any_value = 123;
+		var cell_h = any_value;
+		var cell_w = any_value;
+		var deltaerr =  (deltay / deltax) * cell_w;
+
+		var y = y0;
+		var x;
+		
+		var start_offset = y0 * cell_h + cell_h*0.5 + deltaerr*0.5;
+		var pre_cross_y = start_offset ;
+		
+		var pre_cross_y_at_cell_y = 0;
+		var curr_cross_y_at_cell_y = 0;
+		for (x = x0;x<=x1;x++)
+		{
+			var curr_cross_y = start_offset + deltaerr * (x-x0)//
+			
+			pre_cross_y_at_cell_y = Math.floor(pre_cross_y / cell_h)
+			curr_cross_y_at_cell_y = Math.floor(curr_cross_y / cell_h)
+		
+			if(pre_cross_y_at_cell_y != curr_cross_y_at_cell_y)
+			{
+				//print('跨格子');
+				if (steep)//x 和 y 坐标是调换过了，绘制的时候要再调换回去
+				{	
+					//DrawPixel(pre_cross_y_at_cell_y,x);
+					//DrawPixel(curr_cross_y_at_cell_y,x);
+					grids.push({x:pre_cross_y_at_cell_y,y:x});
+					grids.push({x:curr_cross_y_at_cell_y,y:x});
+				}
+				else
+				{	
+					//DrawPixel(x,pre_cross_y_at_cell_y);
+					//DrawPixel(x,curr_cross_y_at_cell_y);
+					grids.push({x:x,y:pre_cross_y_at_cell_y});
+					grids.push({x:x,y:curr_cross_y_at_cell_y});
+				}
+				
+			}
+			else{
+				//print('未跨格子')
+				if (steep)//x 和 y 坐标是调换过了，绘制的时候要再调换回去
+					//DrawPixel(curr_cross_y_at_cell_y,x);
+					grids.push({x:curr_cross_y_at_cell_y,y:x});
+				else
+					//DrawPixel(x,curr_cross_y_at_cell_y);
+					grids.push({x:x,y:curr_cross_y_at_cell_y});
+			}
+			pre_cross_y = curr_cross_y
+		}
+		
+		return grids;
+	}
+		
+	
+        //第一步：获取canvas元素
+        var canvasDom = document.getElementById("demoCanvas");
+        //第二步：获取上下文
+        var context = canvasDom.getContext('2d');
+        //第三步：指定绘制线样式、颜色
+        context.strokeStyle = "blue";
+		context.fillStyle = "rgb(200,200,200)"
+		 
+	
+		//绘制网格
+		var width = cell_w * w_count;
+		var height = cell_h * h_count;
+		
+		for(var i=0;i<h_count;i++)
+		{
+			context.moveTo(0,cell_h*i);
+			context.lineTo(width,cell_h*i);	
+		}
+		
+		for(var i=0;i<w_count;i++)
+		{
+			context.moveTo(cell_w*i,0);
+			context.lineTo(cell_w*i,height);	
+		}
+		
+		
+		//输入的起始点格子坐标
+		var start_x = 3;
+		var start_y = 10;
+		var to_x = 15;
+		var to_y = 3;
+		
+		
+		
+		function getCenterPixel(x,y)
+		{
+			var pixel_x = x*cell_w + cell_w*0.5;
+			var pixel_y = y*cell_h + cell_h*0.5;
+			//print(pixel_x,pixel_y)
+			return {px:pixel_x,py:pixel_y}
+		}
+		
+		
+		var from_pxy = getCenterPixel(start_x,start_y);
+		var to_pxy = getCenterPixel(to_x,to_y);
+		
+		context.moveTo(from_pxy.px,from_pxy.py);
+		context.lineTo(to_pxy.px,to_pxy.py);
+		
+		//获得经过的格子
+		var grids = GetHitGrid( start_x,start_y,to_x,to_y)
+		
+		var ifDrawUseBresenHam = false;
+		if (ifDrawUseBresenHam)
+		{
+			DrawLine(start_x,start_y,to_x,to_y);
+		}
+		else
+		{
+			for (i=0;i<grids.length;i++)
+			{
+				var grid = grids[i]
+				DrawPixel(grid.x,grid.y);
+			}
+		}
+		
+		
+		
+		//(x0,y0),(x1,y1)是直线L1起始点，x是过x点的垂直的直线L2，求出的是L1和L2的交点坐标
+		function getLineCrossPoint(x0,y0,x1,y1,x)
+		{
+			
+		}
+		
+		context.stroke();
+		
+		
+    </script>
+</body>
